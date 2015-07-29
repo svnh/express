@@ -6,6 +6,8 @@
  * MIT Licensed
  */
 
+// opt into restricted Javascript
 'use strict';
 
+// pull in startfile
 module.exports = require('./lib/express');
