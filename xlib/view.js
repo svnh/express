@@ -1,28 +1,5 @@
-/*!
- * express
- * Copyright(c) 2009-2013 TJ Holowaychuk
- * Copyright(c) 2013 Roman Shtylman
- * Copyright(c) 2014-2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-'use strict';
-
-/**
- * Module dependencies.
- * @private
- */
-
-var debug = require('debug')('express:view');
+// Nodejs path module, allows for access and manipulation of file paths
 var path = require('path');
-var fs = require('fs');
-var utils = require('./utils');
-
-/**
- * Module variables.
- * @private
- */
-
 // "Return the directory name of a path. Similar to the Unix dirname command"
 // https://nodejs.org/api/path.html#path_path_dirname_p
 var dirname = path.dirname;
@@ -46,10 +23,8 @@ var join = path.join;
 // https://nodejs.org/api/path.html#path_path_resolve_from_to
 var resolve = path.resolve;
 
-/**
- * Module exports.
- * @public
- */
+var debug = require('debug')('express:view');
+var fs = require('fs');
 
 module.exports = View;
 
@@ -68,22 +43,25 @@ module.exports = View;
  */
 
 function View(name, options) {
+  // Options is an optional second param
   var opts = options || {};
-
+  // Default view engine
   this.defaultEngine = opts.defaultEngine;
-  // file extension (.html, etc)
+  // File extension name (.html, .ejs, ect)
   this.ext = extname(name);
-  this.name = name;
   this.root = opts.root;
 
+  // View engine does not know what type of file to render
   if (!this.ext && !this.defaultEngine) {
     throw new Error('No default engine was specified and no extension was provided.');
   }
 
+  // Why not just use `name`?
   var fileName = name;
 
   if (!this.ext) {
-    // get extension from default engine name
+    // Get extension from default engine name
+    // If `defaultEngine` filename does not start with `.`, append a `.`
     this.ext = this.defaultEngine[0] !== '.'
       ? '.' + this.defaultEngine
       : this.defaultEngine;
@@ -91,20 +69,21 @@ function View(name, options) {
     fileName += this.ext;
   }
 
+  // If this type of view engine has not already been loaded
   if (!opts.engines[this.ext]) {
-    // load engine
+    // Load engine
     opts.engines[this.ext] = require(this.ext.substr(1)).__express;
   }
 
-  // store loaded engine
+  // Store loaded engine
   // "view engine, the template engine to use. Eg: app.set('view engine', 'jade')"
   // http://expressjs.com/guide/using-template-engines.html
   // Useful - http://expressjs.com/advanced/developing-template-engines.html
   this.engine = opts.engines[this.ext];
 
-  // lookup path
+  // Look up file path
   this.path = this.lookup(fileName);
-}
+};
 
 /**
  * Lookup view by the given `name`
@@ -112,22 +91,24 @@ function View(name, options) {
  * @param {string} name
  * @private
  */
-// find path to file
+
 View.prototype.lookup = function lookup(name) {
   var path;
   var roots = [].concat(this.root);
 
-  debug('lookup "%s"', name);
+  // Replace "%s" with name
+  debug('looking up "%s"', name);
 
-  for (var i = 0; i < roots.length && !path; i++) {
+  // Search for filepath using set root of directory
+  for(var i = 0; i < roots.length & !path; i++) {
     var root = roots[i];
 
-    // resolve the path
+    // Using `path.resolve`
     var loc = resolve(root, name);
     var dir = dirname(loc);
     var file = basename(loc);
 
-    // resolve the file
+    // Using `View.resolve`
     path = this.resolve(dir, file);
   }
 
@@ -144,6 +125,7 @@ View.prototype.lookup = function lookup(name) {
 
 View.prototype.render = function render(options, callback) {
   debug('render "%s"', this.path);
+  // Render file with given options
   this.engine(this.path, options, callback);
 };
 
@@ -160,6 +142,7 @@ View.prototype.resolve = function resolve(dir, file) {
 
   // <path>.<ext>
   var path = join(dir, file);
+  // Check if file exists in file system in <path>.<ext> form
   var stat = tryStat(path);
 
   if (stat && stat.isFile()) {
@@ -168,6 +151,7 @@ View.prototype.resolve = function resolve(dir, file) {
 
   // <path>/index.<ext>
   path = join(dir, basename(file, ext), 'index' + ext);
+  // Check if file exists in file system in <path>/index.<ext> form
   stat = tryStat(path);
 
   if (stat && stat.isFile()) {
@@ -187,8 +171,10 @@ function tryStat(path) {
   debug('stat "%s"', path);
 
   try {
+    // Check for existence of a given file using its path
+    // https://nodejs.org/api/fs.html#fs_class_fs_stats
     return fs.statSync(path);
   } catch (e) {
     return undefined;
   }
-}
+};
