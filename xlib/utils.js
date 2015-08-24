@@ -1,3 +1,43 @@
+// "Generate a strong ETag for the given entity.
+// This should be the complete body of the entity.
+// Strings, Buffers, and fs.Stats are accepted."
+// https://github.com/jshttp/etag
+var etag = require('etag');
+
+/**
+ * Return strong ETag for `body`.
+ *
+ * @param {String|Buffer} body
+ * @param {String} [encoding]
+ * @return {String}
+ * @api private
+ */
+
+exports.etag = function (body, encoding) {
+  var buf = !Buffer.isBuffer(body)
+    ? new Buffer(body, encoding)
+    : body;
+
+  return etag(buf, {weak: false});
+};
+
+/**
+ * Return weak ETag for `body`.
+ *
+ * @param {String|Buffer} body
+ * @param {String} [encoding]
+ * @return {String}
+ * @api private
+ */
+
+exports.wetag = function wetag(body, encoding){
+  var buf = !Buffer.isBuffer(body)
+    ? new Buffer(body, encoding)
+    : body;
+
+  return etag(buf, {weak: true});
+};
+
 /**
  * Compile "etag" value to function.
  *
@@ -30,22 +70,4 @@ exports.compileETag = function(val) {
   }
 
   return fn;
-}
-
-/**
- * Return weak ETag for `body`.
- *
- * @param {String|Buffer} body
- * @param {String} [encoding]
- * @return {String}
- * @api private
- */
-
-exports.wetag = function wetag(body, encoding){
-  var buf = !Buffer.isBuffer(body)
-    ? new Buffer(body, encoding)
-    : body;
-
-  return etag(buf, {weak: true});
 };
-

@@ -43,7 +43,8 @@ app.defaultConfiguration = function defaultConfiguration() {
   It is one of several mechanisms that HTTP provides for web cache validation, and which allows a
   client to make conditional requests. This allows caches to be more efficient, and saves bandwidth,
   as a web server does not need to send a full response if the content has not changed. ETags can
-  also be used for optimistic concurrency control,[1] as a way to help prevent simultaneous updates of a
+  also be used for optimistic concurrency control (multiple transactions can frequently complete
+  without interfering with each other),[1] as a way to help prevent simultaneous updates of a
   resource from overwriting each other.
   An ETag is an opaque identifier assigned by a web server to a specific version of a resource found at
   a URL. If the resource representation at that URL ever changes, a new and different ETag is assigned.
@@ -60,6 +61,22 @@ app.defaultConfiguration = function defaultConfiguration() {
   */
   this.set('etag', 'weak');
   this.set('env', env);
+  // by default supports nesting and arrays, with a depth limit
+  this.set('query parser', 'extended');
+  // sets the req.subdomain property
+  // "The number of dot-separated parts of the host to remove to access subdomain."
+  // http://expressjs.com/api.html
+  // "A subdomain is a domain that is part of a larger domain; the only domain that is not also a subdomain
+  // is the root domain.[1] For example, west.example.com and east.example.com are subdomains of the
+  // example.com domain, which in turn is a subdomain of the com top-level domain (TLD). A "subdomain"
+  // expresses relative dependence, not absolute dependence: for example, wikipedia.org comprises a
+  // subdomain of the org domain, and en.wikipedia.org comprises a subdomain of the domain wikipedia.org."
+  // https://en.wikipedia.org/wiki/Subdomain
+  this.set('subdomain offset', 2);
+  // a server (a computer system or an application) that acts as an intermediary for requests
+  // from clients seeking resources from other servers
+  // Docs: http://expressjs.com/api.html#trust.proxy.options.table
+  this.set('trust proxy', false);
 };
 
 /**
